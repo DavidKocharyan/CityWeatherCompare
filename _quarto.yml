@@ -1,0 +1,13 @@
+project:
+  type: website
+
+website:
+  title: "CityWeatherCompare"
+  description: "A public site comparing weather data for multiple cities"
+  navbar:
+    left:
+      - href: index.qmd
+        text: "Home"
+format:
+  html:
+    css: style.css
