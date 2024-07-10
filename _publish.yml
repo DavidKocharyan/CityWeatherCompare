@@ -1,0 +1,4 @@
+- source: project
+  quarto-pub:
+    - id: c6760321-5989-4b99-8790-6a8a20939b4a
+      url: 'https://david-kocharyan.quarto.pub/cityweathercompare'

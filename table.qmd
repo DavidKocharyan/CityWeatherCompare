@@ -1,0 +1,54 @@
+---
+title: "Table"
+author: "David Kocharyan"
+format: html
+css: styles.css
+---
+
+```{r}
+#| echo: false
+#| warning: false
+library(plotly)
+
+x <- seq(-2*pi, 2*pi, length.out = 1000)
+df <- data.frame(x, y1 = sin(x), y2 = cos(x))
+
+fig <- plot_ly(df, x = ~x)
+fig <- fig %>% add_lines(y = ~y1, name = "Sine", line = list(color = "blue"), visible = TRUE)
+fig <- fig %>% add_lines(y = ~y2, name = "Cosine", line = list(color = "red"), visible = TRUE)
+
+fig <- fig %>% layout(
+  title = "Sine and Cosine Functions",
+  xaxis = list(domain = c(0.1, 1)),
+  yaxis = list(title = "y"),
+  updatemenus = list(
+    list(
+      type = "buttons",
+      y = 1.2,
+      buttons = list(
+        list(
+          method = "update",
+          args = list("visible", list(TRUE, FALSE)),
+          label = "Toggle Sine",
+          execute = TRUE
+        ),
+        list(
+          method = "update",
+          args = list("visible", list(TRUE, TRUE)),
+          label = "Show Both",
+          execute = TRUE
+        ),
+        list(
+          method = "update",
+          args = list("visible", list(FALSE, TRUE)),
+          label = "Toggle Cosine",
+          execute = TRUE
+        )
+      )
+    )
+  )
+)
+
+fig
+
+```
