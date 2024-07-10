@@ -1,4 +1,14 @@
 /* Navbar styling */
+.climatenet-title{
+  background-color: #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  margin-bottom:10px;
+   
+}
+
 .navbar {
   background-color: #0047AB; /* Replace with your desired color */
   overflow: hidden;
@@ -7,9 +17,9 @@
   /* Basic styling for the sidebar */
   .sidebar {
     float: left;
-    width: 200px;
+    width: 150px;
     background-color: #f0f0f0;
-    padding: 20px;
+    padding: 12px;
   }
 
   /* Styling for the checkboxes */
@@ -26,7 +36,9 @@
 .main-content {
   float: left;
   width: 75%;
-  padding: 15px;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-bottom: 15px;
 }
 
 /* Clearfix for float elements */

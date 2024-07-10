@@ -24,7 +24,10 @@ css: styles.css
 :::
 
 ::: main-content
-<h1>ClimateNet</h1>
+::: climatenet-title
+<p>ClimateNet</p>
+<input type="checkbox">   
+:::
 
 ::: compare-section
 <h2>Compare data</h2>
@@ -56,3 +59,5 @@ css: styles.css
 :::
 :::
 :::
+
+
