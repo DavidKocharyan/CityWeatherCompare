@@ -14,8 +14,8 @@ x <- seq(-2*pi, 2*pi, length.out = 1000)
 df <- data.frame(x, y1 = sin(x), y2 = cos(x))
 
 fig <- plot_ly(df, x = ~x)
-fig <- fig %>% add_lines(y = ~y1, name = "Sine", line = list(color = "blue"), visible = TRUE)
-fig <- fig %>% add_lines(y = ~y2, name = "Cosine", line = list(color = "red"), visible = TRUE)
+fig <- fig %>% add_lines(y = ~y1, name = "☐Sin", line = list(color = "blue"), visible = TRUE)
+fig <- fig %>% add_lines(y = ~y2, name = "☐Cos", line = list(color = "red"), visible = TRUE)
 
 fig <- fig %>% layout(
   title = "Sine and Cosine Functions",
