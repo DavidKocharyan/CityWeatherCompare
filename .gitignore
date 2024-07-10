@@ -6,3 +6,4 @@ _site
 /.quarto/
 index_files
 *.Rproj
+*.ipynb

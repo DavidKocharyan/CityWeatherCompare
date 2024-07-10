@@ -2,7 +2,57 @@
 title: "Home"
 author: "David Kocharyan"
 format: html
-editor: visual
+css: styles.css
 ---
 
-Hello World
+::: sidebar
+<aside class="sidebar">
+    <h2>Select a city:</h2>
+    <table>
+        <tr>
+            <td><input type="checkbox" id="yerevan" name="city" value="yerevan"></td>
+            <td><label for="yerevan">Yerevan</label></td>
+        </tr>
+        <tr>
+            <td><input type="checkbox" id="shirak" name="city" value="shirak"></td>
+            <td><label for="shirak">Shirak</label></td>
+        </tr>
+        <!-- Add more rows as needed -->
+    </table>
+</aside>
+
+:::
+
+::: main-content
+<h1>ClimateNet</h1>
+
+::: compare-section
+<h2>Compare data</h2>
+
+::: data-rows
+::: data-row
+    
+<p>Data Row 1</p>
+<input type="checkbox">
+:::
+::: data-row
+<p>Data Row 2</p>
+<input type="checkbox">
+:::
+::: data-row
+<p>Data Row 2</p>
+<input type="checkbox">
+:::
+::: data-row
+<p>Data Row 2</p>
+<input type="checkbox">
+::: 
+::: data-row
+<p>Data Row 2</p>
+<input type="checkbox">
+:::
+
+<!-- Add more data rows as needed -->
+:::
+:::
+:::

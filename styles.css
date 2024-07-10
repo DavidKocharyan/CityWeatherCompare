@@ -1,0 +1,60 @@
+/* Navbar styling */
+.navbar {
+  background-color: #0047AB; /* Replace with your desired color */
+  overflow: hidden;
+}
+
+  /* Basic styling for the sidebar */
+  .sidebar {
+    float: left;
+    width: 200px;
+    background-color: #f0f0f0;
+    padding: 20px;
+  }
+
+  /* Styling for the checkboxes */
+  .sidebar label {
+    display: block;
+    margin-bottom: 10px;
+  }
+
+  .sidebar input[type="checkbox"] {
+    margin-right: 10px;
+  }
+
+/* Main content styling */
+.main-content {
+  float: left;
+  width: 75%;
+  padding: 15px;
+}
+
+/* Clearfix for float elements */
+.clearfix::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+/* Apply clearfix to container */
+.container {
+  /* Adjust as per your HTML structure */
+}
+
+/* Additional styling as needed */
+.compare-section {
+  border: 1px solid #ddd;
+  padding: 15px;
+}
+
+.data-rows {
+  border-top: 1px solid #ddd;
+}
+
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
