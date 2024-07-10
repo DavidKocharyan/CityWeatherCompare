@@ -23,25 +23,17 @@ fig <- fig %>% layout(
   yaxis = list(title = "y"),
   updatemenus = list(
     list(
-      type = "buttons",
+      type = "checkbox",
       y = 1.2,
-      buttons = list(
+      items = list(
         list(
-          method = "update",
+          label = "Show Sine",
           args = list("visible", list(TRUE, FALSE)),
-          label = "Toggle Sine",
           execute = TRUE
         ),
         list(
-          method = "update",
-          args = list("visible", list(TRUE, TRUE)),
-          label = "Show Both",
-          execute = TRUE
-        ),
-        list(
-          method = "update",
+          label = "Show Cosine",
           args = list("visible", list(FALSE, TRUE)),
-          label = "Toggle Cosine",
           execute = TRUE
         )
       )
