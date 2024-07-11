@@ -1,0 +1,282 @@
+---
+title: "Weather Data Comparison"
+author: "David Kocharyan"
+format: html
+css: styles.css
+execute: 
+  echo: false
+  warning: false
+---
+
+```{r}
+retrieve_all_data <- function() {
+  library(httr)
+  library(jsonlite)
+  library(tidyverse)
+  
+  # Define the devices dictionary
+  devices <- list(
+    '1' = 'Maralik',
+    '2' = 'Panik',
+    '3' = 'Azatan',
+    '4' = 'Artik',
+    '5' = 'Ashotsk',
+    '6' = 'Gavar',
+    '7' = 'Akhuryan',
+    '8' = 'Yerevan V. Sargsyan',
+    '9' = 'Sevan',
+    '10' = 'Hatsik',
+    '11' = 'Amasia',
+    '12' = 'Yerazgavors',
+    '14' = 'Yerevan Tumo'
+  )
+  
+  # Define the API endpoint
+  api_endpoint <- "https://emvnh9buoh.execute-api.us-east-1.amazonaws.com/getData"
+  start_time <- "2024-07-09"
+  end_time <- "2024-07-11"
+  
+  # Initialize a list to store data frames
+  all_data <- list()
+  
+  # Loop through devices
+  for (device_id in names(devices)) {
+    # Construct the URL for the current device ID
+    url <- paste0(api_endpoint, "?device_id=", device_id, "&start_time=", start_time, "&end_time=", end_time)
+    
+    # Make the GET request
+    response <- GET(url)
+    
+    # Check if the request was successful
+    if (http_status(response)$category == "Success") {
+      # Parse the JSON response
+      data <- fromJSON(content(response, "text"))
+      
+      # Convert data to dataframe
+      dataframe <- as.data.frame(data)
+      
+      # Rename columns
+      new_names <- c("entry_id", "time", "uv", "lux", "temperature", "pressure", "humidity", "pm1", "pm2_5", "pm10", "speed", "rain", "direction")
+      names(dataframe) <- new_names
+      
+      # Add device name
+      dataframe$device <- devices[[device_id]]
+      
+      # Remove unwanted columns
+      dataframe <- dataframe[, !(names(dataframe) %in% c("entry_id", "direction"))]
+      
+      # Store dataframe in the list
+      all_data[[device_id]] <- dataframe
+      
+    } else {
+      print(paste("Failed to retrieve data for device", devices[[device_id]]))
+    }
+  }
+  
+  # Return all_data list
+  return(all_data)
+}
+
+```
+
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(plotly)
+data <- retrieve_all_data()
+```
+
+```{r}
+# Data for Yerevan Tumo
+yerevan_data <- data[['14']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+yerevan_tumo_time_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(time)
+yerevan_tumo_time_table$time <- as.POSIXct(yerevan_tumo_time_table$time)
+yerevan_tumo_time_table$time <- format(yerevan_tumo_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+yerevan_tumo_temp_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(temperature)
+# PRESSURE
+yerevan_tumo_pres_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(pressure)
+# HUMIDIDTY
+yerevan_tumo_humidity_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(humidity)
+
+data_yerevan_tumo <- data.frame(
+  time = yerevan_tumo_time_table$time,
+  temperature = yerevan_tumo_temp_table$temperature,
+  pressure = yerevan_tumo_pres_table$pressure,
+  humidity = yerevan_tumo_humidity_table$humidity
+)
+
+
+# Data for Gavar
+gavar_data <- data[['6']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+gavar_time_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(time)
+gavar_time_table$time <- as.POSIXct(gavar_time_table$time)
+gavar_time_table$time <- format(gavar_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+gavar_temp_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(temperature)
+# PRESSURE
+gavar_pres_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(pressure)
+# HUMIDIDTY
+gavar_humidity_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(humidity)
+# Data for Gavar
+data_gavar <- data.frame(
+  time = gavar_time_table$time,
+  temperature = gavar_temp_table$temperature,
+  pressure = gavar_pres_table$pressure,
+  humidity = gavar_humidity_table$humidity
+)
+
+
+# Data for Maralik
+maralik_data <- data[['1']]
+# TIME
+maralik_time_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(time)
+maralik_time_table$time <- as.POSIXct(maralik_time_table$time)
+maralik_time_table$time <- format(maralik_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+maralik_temp_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(temperature)
+# PRESSURE
+maralik_pres_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(pressure)
+# HUMIDIDTY
+maralik_humidity_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(humidity)
+# Data for Maralik
+data_maralik <- data.frame(
+  time = maralik_time_table$time,
+  temperature = maralik_temp_table$temperature,
+  pressure = maralik_pres_table$pressure,
+  humidity = maralik_humidity_table$humidity
+)
+
+```
+
+
+```{r}
+# Plotly figure
+fig <- plot_ly()
+
+# Add Yerevan Tumo data
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~temperature, name = "Yerevan Tumo", line = list(color = "blue"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~pressure, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~humidity, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
+
+# Add Gavar data
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~temperature, name = "Gavar", line = list(color = "orange"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~pressure, name = "Gavar", line = list(color = "orange"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~humidity, name = "Gavar", line = list(color = "orange"), visible = FALSE)
+
+# Add Maralik data
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~temperature, name = "Maralik", line = list(color = "black"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~pressure, name = "Maralik", line = list(color = "black"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~humidity, name = "Maralik", line = list(color = "black"), visible = FALSE)
+
+# Add Panik data
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~temperature, name = "Panik", line = list(color = "#287233"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~pressure, name = "Panik", line = list(color = "#287233"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~humidity, name = "Panik", line = list(color = "#287233"), visible = FALSE)
+
+# Add Azatan data
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~temperature, name = "Azatan", line = list(color = "#4C2F27"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~pressure, name = "Azatan", line = list(color = "#4C2F27"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~humidity, name = "Azatan", line = list(color = "#4C2F27"), visible = FALSE)
+
+# Add Artik data
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~temperature, name = "Artik", line = list(color = "yellow"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~pressure, name = "Artik", line = list(color = "yellow"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~humidity, name = "Artik", line = list(color = "yellow"), visible = FALSE)
+
+# Add Ashotsk data
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~temperature, name = "Ashotsk", line = list(color = "#BDECB6"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~pressure, name = "Ashotsk", line = list(color = "#BDECB6"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~humidity, name = "Ashotsk", line = list(color = "#BDECB6"), visible = FALSE)
+
+# Add Akhuryan data
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~temperature, name = "Akhuryan", line = list(color = "#2A6478"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~pressure, name = "Akhuryan", line = list(color = "#2A6478"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~humidity, name = "Akhuryan", line = list(color = "#2A6478"), visible = FALSE)
+
+# Add Yerevan V. Sargsyan data
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~temperature, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~pressure, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~humidity, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = FALSE)
+
+# Add Sevan data
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~temperature, name = "Sevan", line = list(color = "#999950"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~pressure, name = "Sevan", line = list(color = "#999950"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~humidity, name = "Sevan", line = list(color = "#999950"), visible = FALSE)
+
+# Add Hatsik data
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~temperature, name = "Hatsik", line = list(color = "#193737"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~pressure, name = "Hatsik", line = list(color = "#193737"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~humidity, name = "Hatsik", line = list(color = "#193737"), visible = FALSE)
+
+# Add Amasia data
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~temperature, name = "Amasia", line = list(color = "#C2B078"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~pressure, name = "Amasia", line = list(color = "#C2B078"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~humidity, name = "Amasia", line = list(color = "#C2B078"), visible = FALSE)
+
+# Add Yerazgavors data
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~temperature, name = "Yerazgavors", line = list(color = "#7F7679"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~pressure, name = "Yerazgavors", line = list(color = "#7F7679"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~humidity, name = "Yerazgavors", line = list(color = "#7F7679"), visible = FALSE)
+
+fig <- fig %>% layout(
+  title = "Weather Data Comparison",
+  xaxis = list(title = "Time", tickangle = 45),
+  yaxis = list(title = "Value"),
+  updatemenus = list(
+    list(
+      type = "buttons",
+      direction = "down",
+      buttons = list(
+        list(
+          method = "restyle",
+          args = list("visible", list(TRUE, FALSE, FALSE, TRUE, FALSE, FALSE)),
+          label = "Temperature"
+        ),
+        list(
+          method = "restyle",
+          args = list("visible", list(FALSE, TRUE, FALSE, FALSE, TRUE, FALSE)),
+          label = "Pressure"
+        ),
+        list(
+          method = "restyle",
+          args = list("visible", list(FALSE, FALSE, TRUE, FALSE, FALSE, TRUE)),
+          label = "Humidity"
+        )
+      ),
+      showactive = TRUE
+    )
+  ))
+
+fig
+```
+
+
