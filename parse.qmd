@@ -1,0 +1,78 @@
+---
+title: "Test"
+author: "David Kocharyan"
+editor: visual
+execute: 
+  echo: false
+  warning: false
+---
+
+```{r}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+
+options(max.print = 100000000)
+
+# Define the devices dictionary
+devices <- list(
+  '1' = 'Maralik',
+  '2' = 'Panik',
+  '3' = 'Azatan',
+  '4' = 'Artik',
+  '5' = 'Ashotsk',
+  '6' = 'Gavar',
+  '7' = 'Akhuryan',
+  '8' = 'V. Sargsyan',
+  '9' = 'Sevan',
+  '10' = 'Hatsik',
+  '11' = 'Amasia',
+  '12' = 'Yerazgavors',
+  '14' = 'Tumo'
+)
+
+# Define the API endpoint
+api_endpoint <- "https://emvnh9buoh.execute-api.us-east-1.amazonaws.com/getData"
+start_time <- "2000-01-01"
+end_time <- "3000-01-01"
+
+# Initialize a list to store data frames
+all_data <- list()
+
+# Loop through devices
+for (device_id in names(devices)) {
+  # Construct the URL for the current device ID
+  url <- paste0(api_endpoint, "?device_id=", device_id, "&start_time=", start_time, "&end_time=", end_time)
+  
+  # Make the GET request
+  response <- GET(url)
+  
+  # Check if the request was successful
+  if (http_status(response)$category == "Success") {
+    # Parse the JSON response
+    data <- fromJSON(content(response, "text"))
+    
+    # Convert data to dataframe
+    dataframe <- as.data.frame(data)
+    
+    # Rename columns
+    new_names <- c("entry_id", "time", "uv", "lux", "temperature", "pressure", "humidity", "pm1", "pm2_5", "pm10", "speed", "rain", "direction")
+    names(dataframe) <- new_names
+    
+    # Add device name
+    dataframe$device <- devices[[device_id]]
+    
+    # Remove unwanted columns
+    dataframe <- dataframe[, !(names(dataframe) %in% c("entry_id", "direction"))]
+    
+    # Store dataframe in the list
+    all_data[[device_id]] <- dataframe
+    
+  } else {
+    print(paste("Failed to retrieve data for device", devices[[device_id]]))
+  }
+}
+
+# Print or return all_data as needed
+all_data
+```
