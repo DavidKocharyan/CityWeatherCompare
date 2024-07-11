@@ -5,33 +5,147 @@ format: html
 css: styles.css
 execute: 
   echo: false
+  warning: false
 ---
+
+```{r}
+retrieve_all_data <- function() {
+  library(httr)
+  library(jsonlite)
+  library(tidyverse)
+  
+  # Define the devices dictionary
+  devices <- list(
+    '1' = 'Maralik',
+    '2' = 'Panik',
+    '3' = 'Azatan',
+    '4' = 'Artik',
+    '5' = 'Ashotsk',
+    '6' = 'Gavar',
+    '7' = 'Akhuryan',
+    '8' = 'Yerevan V. Sargsyan',
+    '9' = 'Sevan',
+    '10' = 'Hatsik',
+    '11' = 'Amasia',
+    '12' = 'Yerazgavors',
+    '14' = 'Yerevan Tumo'
+  )
+  
+  # Define the API endpoint
+  api_endpoint <- "https://emvnh9buoh.execute-api.us-east-1.amazonaws.com/getData"
+  start_time <- "2024-07-09"
+  end_time <- "2024-07-11"
+  
+  # Initialize a list to store data frames
+  all_data <- list()
+  
+  # Loop through devices
+  for (device_id in names(devices)) {
+    # Construct the URL for the current device ID
+    url <- paste0(api_endpoint, "?device_id=", device_id, "&start_time=", start_time, "&end_time=", end_time)
+    
+    # Make the GET request
+    response <- GET(url)
+    
+    # Check if the request was successful
+    if (http_status(response)$category == "Success") {
+      # Parse the JSON response
+      data <- fromJSON(content(response, "text"))
+      
+      # Convert data to dataframe
+      dataframe <- as.data.frame(data)
+      
+      # Rename columns
+      new_names <- c("entry_id", "time", "uv", "lux", "temperature", "pressure", "humidity", "pm1", "pm2_5", "pm10", "speed", "rain", "direction")
+      names(dataframe) <- new_names
+      
+      # Add device name
+      dataframe$device <- devices[[device_id]]
+      
+      # Remove unwanted columns
+      dataframe <- dataframe[, !(names(dataframe) %in% c("entry_id", "direction"))]
+      
+      # Store dataframe in the list
+      all_data[[device_id]] <- dataframe
+      
+    } else {
+      print(paste("Failed to retrieve data for device", devices[[device_id]]))
+    }
+  }
+  
+  # Return all_data list
+  return(all_data)
+}
+
+```
+
 
 ```{r setup, include=FALSE}
 # Load necessary libraries
 library(plotly)
+data <- retrieve_all_data()
 ```
 
 ```{r}
-# Data for Yerevan
-data_yerevan <- data.frame(
-  time = as.POSIXct(c("2023-11-16 21:12:30", "2023-11-16 21:27:30", "2023-11-16 21:42:30", "2023-11-16 21:57:30", "2023-11-16 22:12:30",
-                      "2023-11-16 22:27:30", "2023-11-16 22:42:30", "2023-11-16 22:57:30", "2023-11-16 23:12:30", "2023-11-16 23:27:30",
-                      "2023-11-16 23:42:30", "2023-11-16 23:57:30", "2023-11-17 00:12:30", "2023-11-17 00:27:30", "2023-11-17 00:42:30")),
-  temperature = c(11.67, 11.39, 10.94, 11.4, 10.54, 10.63, 10.23, 9.99, 10.47, 10.44, 10.57, 11.01, 10.57, 10.76, 10.43),
-  pressure = c(864.82, 864.78, 864.49, 864.15, 864.18, 864.02, 863.86, 863.79, 863.66, 863.65, 863.4, 863.12, 863.35, 863.18, 863.04),
-  humidity = c(57.64, 58.35, 66.08, 61.07, 67.31, 67.27, 69.9, 69.94, 66.02, 67.49, 67.81, 64.72, 69.27, 67.32, 69.9)
+# Data for Yerevan Tumo
+yerevan_data <- data[['14']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+yerevan_tumo_time_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(time)
+yerevan_tumo_time_table$time <- as.POSIXct(yerevan_tumo_time_table$time)
+yerevan_tumo_time_table$time <- format(yerevan_tumo_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+yerevan_tumo_temp_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(temperature)
+# PRESSURE
+yerevan_tumo_pres_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(pressure)
+# HUMIDIDTY
+yerevan_tumo_humidity_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(humidity)
+
+data_yerevan_tumo <- data.frame(
+  time = yerevan_tumo_time_table$time,
+  temperature = yerevan_tumo_temp_table$temperature,
+  pressure = yerevan_tumo_pres_table$pressure,
+  humidity = yerevan_tumo_humidity_table$humidity
 )
 
+
+# Data for Gavar
+gavar_data <- data[['6']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+gavar_time_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(time)
+gavar_time_table$time <- as.POSIXct(gavar_time_table$time)
+gavar_time_table$time <- format(gavar_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+gavar_temp_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(temperature)
+# PRESSURE
+gavar_pres_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(pressure)
+# HUMIDIDTY
+gavar_humidity_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(humidity)
 # Data for Gavar
 data_gavar <- data.frame(
-  time = as.POSIXct(c("2023-11-16 21:12:30", "2023-11-16 21:27:30", "2023-11-16 21:42:30", "2023-11-16 21:57:30", "2023-11-16 22:12:30",
-                      "2023-11-16 22:27:30", "2023-11-16 22:42:30", "2023-11-16 22:57:30", "2023-11-16 23:12:30", "2023-11-16 23:27:30",
-                      "2023-11-16 23:42:30", "2023-11-16 23:57:30", "2023-11-17 00:12:30", "2023-11-17 00:27:30", "2023-11-17 00:42:30", "2023-11-16 23:42:30")),
-  temperature = c(2.03, 2.14, 3.22, 3.01, 1.88, 2.59, 3.09, 1.9, 0.97, 1.4, 1.74, 1.58, 2.04, 1.64, 1.59, 2.65),
-  pressure = c(865.44, 865.23, 865.11, 864.9, 864.84, 864.63, 864.59, 864.58, 864.32, 864.05, 863.97, 863.73, 863.67, 863.65, 863.45, 863.33),
-  humidity = c(65.32, 68.23, 67.84, 64.98, 74.68, 74.7, 72.37, 74.91, 79.32, 77.78, 73.8, 68.78, 71.75, 72.36, 75.42, 70.61)
+  time = gavar_time_table$time,
+  temperature = gavar_temp_table$temperature,
+  pressure = gavar_pres_table$pressure,
+  humidity = gavar_humidity_table$humidity
 )
+
 ```
 
 
@@ -40,19 +154,19 @@ data_gavar <- data.frame(
 fig <- plot_ly()
 
 # Add Yerevan data
-fig <- fig %>% add_lines(data = data_yerevan, x = ~time, y = ~temperature, name = "Yerevan Temperature", line = list(color = "blue"), visible = TRUE)
-fig <- fig %>% add_lines(data = data_yerevan, x = ~time, y = ~pressure, name = "Yerevan Pressure", line = list(color = "blue"), visible = FALSE)
-fig <- fig %>% add_lines(data = data_yerevan, x = ~time, y = ~humidity, name = "Yerevan Humidity", line = list(color = "blue"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~temperature, name = "Yerevan Tumo", line = list(color = "blue"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~pressure, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~humidity, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
 
 # Add Gavar data
-fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~temperature, name = "Gavar Temperature", line = list(color = "orange"), visible = TRUE)
-fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~pressure, name = "Gavar Pressure", line = list(color = "orange"), visible = FALSE)
-fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~humidity, name = "Gavar Humidity", line = list(color = "orange"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~temperature, name = "Gavar", line = list(color = "orange"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~pressure, name = "Gavar", line = list(color = "orange"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~humidity, name = "Gavar", line = list(color = "orange"), visible = FALSE)
 
 fig <- fig %>% layout(
   title = "Weather Data Comparison",
-  xaxis = list(title = "Time"),
-  yaxis = list(title = "Temperature in Celsius"),
+  xaxis = list(title = "Time", tickangle = 45),
+  yaxis = list(title = "Value"),
   updatemenus = list(
     list(
       type = "buttons",

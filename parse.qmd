@@ -1,5 +1,5 @@
 ---
-title: "Test"
+title: "Parsing Data"
 author: "David Kocharyan"
 editor: visual
 execute: 
@@ -34,7 +34,7 @@ devices <- list(
 # Define the API endpoint
 api_endpoint <- "https://emvnh9buoh.execute-api.us-east-1.amazonaws.com/getData"
 start_time <- "2000-01-01"
-end_time <- "3000-01-01"
+end_time <- "2024-07-04"
 
 # Initialize a list to store data frames
 all_data <- list()
@@ -75,4 +75,5 @@ for (device_id in names(devices)) {
 
 # Print or return all_data as needed
 all_data
+
 ```
