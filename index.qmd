@@ -1,62 +1,608 @@
 ---
-title: "Home"
+title: "Weather Data Comparison"
 author: "David Kocharyan"
 format: html
 css: styles.css
+execute: 
+  echo: false
+  warning: false
 ---
-
-::: sidebar
-<aside class="sidebar">
-    <h2>Select a city:</h2>
-    <table>
-        <tr>
-            <td><input type="checkbox" id="yerevan" name="city" value="yerevan"></td>
-            <td><label for="yerevan">Yerevan</label></td>
-        </tr>
-        <tr>
-            <td><input type="checkbox" id="shirak" name="city" value="shirak"></td>
-            <td><label for="shirak">Shirak</label></td>
-        </tr>
-        <!-- Add more rows as needed -->
-    </table>
-</aside>
-
-:::
-
-::: main-content
-::: climatenet-title
-<p>ClimateNet</p>
-<input type='checkbox' onclick='sel()' value='Select' />
-:::
-
-::: compare-section
-<h2>Compare data</h2>
-
-::: data-rows
-::: data-row
+```{r chunk1}
+retrieve_all_data <- function() {
+  library(httr)
+  library(jsonlite)
+  library(tidyverse)
+  
+  # Define the devices dictionary
+  devices <- list(
+    '1' = 'Maralik',
+    '2' = 'Panik',
+    '3' = 'Azatan',
+    '4' = 'Artik',
+    '5' = 'Ashotsk',
+    '6' = 'Gavar',
+    '7' = 'Akhuryan',
+    '8' = 'Yerevan V. Sargsyan',
+    '9' = 'Sevan',
+    '10' = 'Hatsik',
+    '11' = 'Amasia',
+    '12' = 'Yerazgavors',
+    '14' = 'Yerevan Tumo'
+  )
+  
+  # Define the API endpoint
+  api_endpoint <- "https://emvnh9buoh.execute-api.us-east-1.amazonaws.com/getData"
+  start_time <- "2024-07-09"
+  end_time <- "2024-07-11"
+  
+  # Initialize a list to store data frames
+  all_data <- list()
+  
+  # Loop through devices
+  for (device_id in names(devices)) {
+    # Construct the URL for the current device ID
+    url <- paste0(api_endpoint, "?device_id=", device_id, "&start_time=", start_time, "&end_time=", end_time)
     
-<p>Data Row 1</p>
-<input type="checkbox">
-:::
-::: data-row
-<p>Data Row 2</p>
-<input type="checkbox">
-:::
-::: data-row
-<p>Data Row 2</p>
-<input type="checkbox">
-:::
-::: data-row
-<p>Data Row 2</p>
-<input type="checkbox">
-::: 
-::: data-row
-<p>Data Row 2</p>
-<input type="checkbox">
-:::
+    # Make the GET request
+    response <- GET(url)
+    
+    # Check if the request was successful
+    if (http_status(response)$category == "Success") {
+      # Parse the JSON response
+      data <- fromJSON(content(response, "text"))
+      
+      # Convert data to dataframe
+      dataframe <- as.data.frame(data)
+      
+      # Rename columns
+      new_names <- c("entry_id", "time", "uv", "lux", "temperature", "pressure", "humidity", "pm1", "pm2_5", "pm10", "speed", "rain", "direction")
+      names(dataframe) <- new_names
+      
+      # Add device name
+      dataframe$device <- devices[[device_id]]
+      
+      # Remove unwanted columns
+      dataframe <- dataframe[, !(names(dataframe) %in% c("entry_id", "direction"))]
+      
+      # Store dataframe in the list
+      all_data[[device_id]] <- dataframe
+      
+    } else {
+      print(paste("Failed to retrieve data for device", devices[[device_id]]))
+    }
+  }
+  
+  # Return all_data list
+  return(all_data)
+}
 
-<!-- Add more data rows as needed -->
-:::
-:::
-:::
+```
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(plotly)
+data <- retrieve_all_data()
+```
+
+```{r chunk3}
+# Data for Yerevan Tumo
+yerevan_data <- data[['14']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+yerevan_tumo_time_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(time)
+yerevan_tumo_time_table$time <- as.POSIXct(yerevan_tumo_time_table$time)
+yerevan_tumo_time_table$time <- format(yerevan_tumo_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+yerevan_tumo_temp_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(temperature)
+# PRESSURE
+yerevan_tumo_pres_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(pressure)
+# HUMIDIDTY
+yerevan_tumo_humidity_table <- yerevan_data %>%
+  filter(device == 'Yerevan Tumo') %>%
+  select(humidity)
+
+data_yerevan_tumo <- data.frame(
+  time = yerevan_tumo_time_table$time,
+  temperature = yerevan_tumo_temp_table$temperature,
+  pressure = yerevan_tumo_pres_table$pressure,
+  humidity = yerevan_tumo_humidity_table$humidity
+)
+
+
+# Data for Gavar
+gavar_data <- data[['6']]  # Assuming '14' corresponds to Yerevan Tumo in devices list
+# Filter data for Yerevan where device is 'Yerevan'
+# TIME
+gavar_time_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(time)
+gavar_time_table$time <- as.POSIXct(gavar_time_table$time)
+gavar_time_table$time <- format(gavar_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+gavar_temp_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(temperature)
+# PRESSURE
+gavar_pres_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(pressure)
+# HUMIDIDTY
+gavar_humidity_table <- gavar_data %>%
+  filter(device == 'Gavar') %>%
+  select(humidity)
+# Data for Gavar
+data_gavar <- data.frame(
+  time = gavar_time_table$time,
+  temperature = gavar_temp_table$temperature,
+  pressure = gavar_pres_table$pressure,
+  humidity = gavar_humidity_table$humidity
+)
+
+
+# Data for Maralik
+maralik_data <- data[['1']]
+# TIME
+maralik_time_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(time)
+maralik_time_table$time <- as.POSIXct(maralik_time_table$time)
+maralik_time_table$time <- format(maralik_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+maralik_temp_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(temperature)
+# PRESSURE
+maralik_pres_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(pressure)
+# HUMIDIDTY
+maralik_humidity_table <- maralik_data %>%
+  filter(device == 'Maralik') %>%
+  select(humidity)
+# Data for Maralik
+data_maralik <- data.frame(
+  time = maralik_time_table$time,
+  temperature = maralik_temp_table$temperature,
+  pressure = maralik_pres_table$pressure,
+  humidity = maralik_humidity_table$humidity
+)
+
+
+# Data for Panik
+panik_data <- data[['2']]
+# TIME
+panik_time_table <- panik_data %>%
+  filter(device == 'Panik') %>%
+  select(time)
+panik_time_table$time <- as.POSIXct(panik_time_table$time)
+panik_time_table$time <- format(panik_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+panik_temp_table <- panik_data %>%
+  filter(device == 'Panik') %>%
+  select(temperature)
+# PRESSURE
+panik_pres_table <- panik_data %>%
+  filter(device == 'Panik') %>%
+  select(pressure)
+# HUMIDIDTY
+panik_humidity_table <- panik_data %>%
+  filter(device == 'Panik') %>%
+  select(humidity)
+# Data for Panik
+data_panik <- data.frame(
+  time = panik_time_table$time,
+  temperature = panik_temp_table$temperature,
+  pressure = panik_pres_table$pressure,
+  humidity = panik_humidity_table$humidity
+)
+
+
+# Data for Azatan
+azatan_data <- data[['3']]
+# TIME
+azatan_time_table <- azatan_data %>%
+  filter(device == 'Azatan') %>%
+  select(time)
+azatan_time_table$time <- as.POSIXct(azatan_time_table$time)
+azatan_time_table$time <- format(azatan_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+azatan_temp_table <- azatan_data %>%
+  filter(device == 'Azatan') %>%
+  select(temperature)
+# PRESSURE
+azatan_pres_table <- azatan_data %>%
+  filter(device == 'Azatan') %>%
+  select(pressure)
+# HUMIDIDTY
+azatan_humidity_table <- azatan_data %>%
+  filter(device == 'Azatan') %>%
+  select(humidity)
+# Data for Azatan
+data_azatan <- data.frame(
+  time = azatan_time_table$time,
+  temperature = azatan_temp_table$temperature,
+  pressure = azatan_pres_table$pressure,
+  humidity = azatan_humidity_table$humidity
+)
+
+
+# Data for Artik
+artik_data <- data[['4']]
+# TIME
+artik_time_table <- artik_data %>%
+  filter(device == 'Artik') %>%
+  select(time)
+artik_time_table$time <- as.POSIXct(artik_time_table$time)
+artik_time_table$time <- format(artik_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+artik_temp_table <- artik_data %>%
+  filter(device == 'Artik') %>%
+  select(temperature)
+# PRESSURE
+artik_pres_table <- artik_data %>%
+  filter(device == 'Artik') %>%
+  select(pressure)
+# HUMIDIDTY
+artik_humidity_table <- artik_data %>%
+  filter(device == 'Artik') %>%
+  select(humidity)
+# Data for Artik
+data_artik <- data.frame(
+  time = artik_time_table$time,
+  temperature = artik_temp_table$temperature,
+  pressure = artik_pres_table$pressure,
+  humidity = artik_humidity_table$humidity
+)
+
+
+# Data for Ashotsk
+ashotsk_data <- data[['5']]
+# TIME
+ashotsk_time_table <- ashotsk_data %>%
+  filter(device == 'Ashotsk') %>%
+  select(time)
+ashotsk_time_table$time <- as.POSIXct(ashotsk_time_table$time)
+ashotsk_time_table$time <- format(ashotsk_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+ashotsk_temp_table <- ashotsk_data %>%
+  filter(device == 'Ashotsk') %>%
+  select(temperature)
+# PRESSURE
+ashotsk_pres_table <- ashotsk_data %>%
+  filter(device == 'Ashotsk') %>%
+  select(pressure)
+# HUMIDIDTY
+ashotsk_humidity_table <- ashotsk_data %>%
+  filter(device == 'Ashotsk') %>%
+  select(humidity)
+# Data for Ashotsk
+data_ashotsk <- data.frame(
+  time = ashotsk_time_table$time,
+  temperature = ashotsk_temp_table$temperature,
+  pressure = ashotsk_pres_table$pressure,
+  humidity = ashotsk_humidity_table$humidity
+)
+
+
+# Data for Akhuryan
+akhuryan_data <- data[['7']]
+# TIME
+akhuryan_time_table <- akhuryan_data %>%
+  filter(device == 'Akhuryan') %>%
+  select(time)
+akhuryan_time_table$time <- as.POSIXct(akhuryan_time_table$time)
+akhuryan_time_table$time <- format(akhuryan_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+akhuryan_temp_table <- akhuryan_data %>%
+  filter(device == 'Akhuryan') %>%
+  select(temperature)
+# PRESSURE
+akhuryan_pres_table <- akhuryan_data %>%
+  filter(device == 'Akhuryan') %>%
+  select(pressure)
+# HUMIDIDTY
+akhuryan_humidity_table <- akhuryan_data %>%
+  filter(device == 'Akhuryan') %>%
+  select(humidity)
+# Data for Akhuryan
+data_akhuryan <- data.frame(
+  time = akhuryan_time_table$time,
+  temperature = akhuryan_temp_table$temperature,
+  pressure = akhuryan_pres_table$pressure,
+  humidity = akhuryan_humidity_table$humidity
+)
+
+
+# Data for Yerevan V. Sargsyan
+yerevan_sargsyan_data <- data[['8']]
+# TIME
+yerevan_sargsyan_time_table <- yerevan_sargsyan_data %>%
+  filter(device == 'Yerevan V. Sargsyan') %>%
+  select(time)
+yerevan_sargsyan_time_table$time <- as.POSIXct(yerevan_sargsyan_time_table$time)
+yerevan_sargsyan_time_table$time <- format(yerevan_sargsyan_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+yerevan_sargsyan_temp_table <- yerevan_sargsyan_data %>%
+  filter(device == 'Yerevan V. Sargsyan') %>%
+  select(temperature)
+# PRESSURE
+yerevan_sargsyan_pres_table <- yerevan_sargsyan_data %>%
+  filter(device == 'Yerevan V. Sargsyan') %>%
+  select(pressure)
+# HUMIDIDTY
+yerevan_sargsyan_humidity_table <- yerevan_sargsyan_data %>%
+  filter(device == 'Yerevan V. Sargsyan') %>%
+  select(humidity)
+# Data for Yerevan V. Sargsyan
+data_yerevan_sargsyan <- data.frame(
+  time = yerevan_sargsyan_time_table$time,
+  temperature = yerevan_sargsyan_temp_table$temperature,
+  pressure = yerevan_sargsyan_pres_table$pressure,
+  humidity = yerevan_sargsyan_humidity_table$humidity
+)
+
+
+# Data for Sevan
+sevan_data <- data[['9']]
+# TIME
+sevan_time_table <- sevan_data %>%
+  filter(device == 'Sevan') %>%
+  select(time)
+sevan_time_table$time <- as.POSIXct(sevan_time_table$time)
+sevan_time_table$time <- format(sevan_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+sevan_temp_table <- sevan_data %>%
+  filter(device == 'Sevan') %>%
+  select(temperature)
+# PRESSURE
+sevan_pres_table <- sevan_data %>%
+  filter(device == 'Sevan') %>%
+  select(pressure)
+# HUMIDIDTY
+sevan_humidity_table <- sevan_data %>%
+  filter(device == 'Sevan') %>%
+  select(humidity)
+# Data for Sevan
+data_sevan <- data.frame(
+  time = sevan_time_table$time,
+  temperature = sevan_temp_table$temperature,
+  pressure = sevan_pres_table$pressure,
+  humidity = sevan_humidity_table$humidity
+)
+
+
+# Data for Hatsik
+hatsik_data <- data[['10']]
+# TIME
+hatsik_time_table <- hatsik_data %>%
+  filter(device == 'Hatsik') %>%
+  select(time)
+hatsik_time_table$time <- as.POSIXct(hatsik_time_table$time)
+hatsik_time_table$time <- format(hatsik_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+hatsik_temp_table <- hatsik_data %>%
+  filter(device == 'Hatsik') %>%
+  select(temperature)
+# PRESSURE
+hatsik_pres_table <- hatsik_data %>%
+  filter(device == 'Hatsik') %>%
+  select(pressure)
+# HUMIDIDTY
+hatsik_humidity_table <- hatsik_data %>%
+  filter(device == 'Hatsik') %>%
+  select(humidity)
+# Data for Hatsik
+data_hatsik <- data.frame(
+  time = hatsik_time_table$time,
+  temperature = hatsik_temp_table$temperature,
+  pressure = hatsik_pres_table$pressure,
+  humidity = hatsik_humidity_table$humidity
+)
+
+
+# Data for Amasia
+amasia_data <- data[['11']]
+# TIME
+amasia_time_table <- amasia_data %>%
+  filter(device == 'Amasia') %>%
+  select(time)
+amasia_time_table$time <- as.POSIXct(amasia_time_table$time)
+amasia_time_table$time <- format(amasia_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+amasia_temp_table <- amasia_data %>%
+  filter(device == 'Amasia') %>%
+  select(temperature)
+# PRESSURE
+amasia_pres_table <- amasia_data %>%
+  filter(device == 'Amasia') %>%
+  select(pressure)
+# HUMIDIDTY
+amasia_humidity_table <- amasia_data %>%
+  filter(device == 'Amasia') %>%
+  select(humidity)
+# Data for Amasia
+data_amasia <- data.frame(
+  time = amasia_time_table$time,
+  temperature = amasia_temp_table$temperature,
+  pressure = amasia_pres_table$pressure,
+  humidity = amasia_humidity_table$humidity
+)
+
+
+# Data for Yerazgavors
+yerazgavors_data <- data[['12']]
+# TIME
+yerazgavors_time_table <- yerazgavors_data %>%
+  filter(device == 'Yerazgavors') %>%
+  select(time)
+yerazgavors_time_table$time <- as.POSIXct(yerazgavors_time_table$time)
+yerazgavors_time_table$time <- format(yerazgavors_time_table$time, "%d/%m/%y-%H:%M")
+# TEMPERATURE
+yerazgavors_temp_table <- yerazgavors_data %>%
+  filter(device == 'Yerazgavors') %>%
+  select(temperature)
+# PRESSURE
+yerazgavors_pres_table <- yerazgavors_data %>%
+  filter(device == 'Yerazgavors') %>%
+  select(pressure)
+# HUMIDIDTY
+yerazgavors_humidity_table <- yerazgavors_data %>%
+  filter(device == 'Yerazgavors') %>%
+  select(humidity)
+# Data for Yerazgavors
+data_yerazgavors <- data.frame(
+  time = yerazgavors_time_table$time,
+  temperature = yerazgavors_temp_table$temperature,
+  pressure = yerazgavors_pres_table$pressure,
+  humidity = yerazgavors_humidity_table$humidity
+)
+```
+
+```{r chunk4}
+
+#| fig-align: center
+# Plotly figure
+fig <- plot_ly()
+
+# Add Yerevan Tumo data
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~temperature, name = "Yerevan Tumo", line = list(color = "blue"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~pressure, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_tumo, x = ~time, y = ~humidity, name = "Yerevan Tumo", line = list(color = "blue"), visible = FALSE)
+
+# Add Gavar data
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~temperature, name = "Gavar", line = list(color = "orange"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~pressure, name = "Gavar", line = list(color = "orange"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_gavar, x = ~time, y = ~humidity, name = "Gavar", line = list(color = "orange"), visible = FALSE)
+
+# Add Maralik data
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~temperature, name = "Maralik", line = list(color = "black"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~pressure, name = "Maralik", line = list(color = "black"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_maralik, x = ~time, y = ~humidity, name = "Maralik", line = list(color = "black"), visible = FALSE)
+
+# Add Panik data
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~temperature, name = "Panik", line = list(color = "#287233"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~pressure, name = "Panik", line = list(color = "#287233"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_panik, x = ~time, y = ~humidity, name = "Panik", line = list(color = "#287233"), visible = FALSE)
+
+# Add Azatan data
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~temperature, name = "Azatan", line = list(color = "#4C2F27"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~pressure, name = "Azatan", line = list(color = "#4C2F27"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_azatan, x = ~time, y = ~humidity, name = "Azatan", line = list(color = "#4C2F27"), visible = FALSE)
+
+# Add Artik data
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~temperature, name = "Artik", line = list(color = "yellow"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~pressure, name = "Artik", line = list(color = "yellow"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_artik, x = ~time, y = ~humidity, name = "Artik", line = list(color = "yellow"), visible = FALSE)
+
+# Add Ashotsk data
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~temperature, name = "Ashotsk", line = list(color = "#BDECB6"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~pressure, name = "Ashotsk", line = list(color = "#BDECB6"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_ashotsk, x = ~time, y = ~humidity, name = "Ashotsk", line = list(color = "#BDECB6"), visible = FALSE)
+
+# Add Akhuryan data
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~temperature, name = "Akhuryan", line = list(color = "#2A6478"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~pressure, name = "Akhuryan", line = list(color = "#2A6478"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_akhuryan, x = ~time, y = ~humidity, name = "Akhuryan", line = list(color = "#2A6478"), visible = FALSE)
+
+# Add Yerevan V. Sargsyan data
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~temperature, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~pressure, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerevan_sargsyan, x = ~time, y = ~humidity, name = "Yerevan V. Sargsyan", line = list(color = "#E55137"), visible = FALSE)
+
+# Add Sevan data
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~temperature, name = "Sevan", line = list(color = "#999950"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~pressure, name = "Sevan", line = list(color = "#999950"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_sevan, x = ~time, y = ~humidity, name = "Sevan", line = list(color = "#999950"), visible = FALSE)
+
+# Add Hatsik data
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~temperature, name = "Hatsik", line = list(color = "#193737"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~pressure, name = "Hatsik", line = list(color = "#193737"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_hatsik, x = ~time, y = ~humidity, name = "Hatsik", line = list(color = "#193737"), visible = FALSE)
+
+# Add Amasia data
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~temperature, name = "Amasia", line = list(color = "#C2B078"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~pressure, name = "Amasia", line = list(color = "#C2B078"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_amasia, x = ~time, y = ~humidity, name = "Amasia", line = list(color = "#C2B078"), visible = FALSE)
+
+# Add Yerazgavors data
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~temperature, name = "Yerazgavors", line = list(color = "#7F7679"), visible = TRUE)
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~pressure, name = "Yerazgavors", line = list(color = "#7F7679"), visible = FALSE)
+fig <- fig %>% add_lines(data = data_yerazgavors, x = ~time, y = ~humidity, name = "Yerazgavors", line = list(color = "#7F7679"), visible = FALSE)
+
+
+fig <- fig %>% layout(
+  title = "Weather Data Comparison",
+  xaxis = list(title = "Time", tickangle = 45),
+  yaxis = list(title = "Value"),
+  updatemenus = list(
+    list(
+      type = "buttons",
+      direction = "down",
+      buttons = list(
+        list(
+          method = "restyle",
+          args = list("visible", list(TRUE, FALSE, FALSE, TRUE, FALSE, FALSE)),
+          label = "Temperature"
+        ),
+        list(
+          method = "restyle",
+          args = list("visible", list(FALSE, TRUE, FALSE, FALSE, TRUE, FALSE)),
+          label = "Pressure"
+        ),
+        list(
+          method = "restyle",
+          args = list("visible", list(FALSE, FALSE, TRUE, FALSE, FALSE, TRUE)),
+          label = "Humidity"
+        )
+      ),
+      showactive = TRUE
+    )
+  ))
+
+fig
+```
+
+## Weather Data Comparison
+
+Welcome to the Weather Data Comparison site, created by David Kocharyan. This platform provides a comprehensive and interactive analysis of weather data collected from various cities and villages across Armenia. My goal is to offer users a detailed view of how weather conditions vary across different regions over specified time periods.
+
+### Features:
+
+- **Real-Time Data Retrieval**: ClimateNet team devices collect weather data from multiple cities, including Yerevan, Gavar, Maralik, Panik, Azatan, Artik, Ashotsk, Akhuryan, and more.
+- **Interactive Visualization**: My site features dynamic and interactive plots that allow users to explore temperature, pressure, and humidity data for each city.
+- **Customizable Views**: Users can select which cities and data types they want to view, making it easy to compare and contrast weather conditions.
+- **Historical Data Analysis**: In addition to real-time data, users can explore historical weather data for in-depth analysis.
+
+### Data Sources:
+
+The data is collected from a network of weather stations located in different cities. Each station provides a variety of meteorological parameters, ensuring a robust and detailed dataset.
+
+### How to Use:
+
+1. **Choose Parameters**: Toggle between temperature, pressure, and humidity to see how these variables change over time.
+2. **Select Cities**: Use the provided checkboxes to choose which cities' data you wish to compare.
+3. **Explore**: Interact with the plots to zoom in on specific time periods or weather events.
+
+I hope this platform serves as a valuable tool for weather enthusiasts, researchers, and anyone interested in understanding the climatic patterns of Armenia. Thank you for visiting, and happy exploring!
+
+```{js, output.quarto: false}
+// Calculate the scroll position to the right
+let scrollRightPos = document.body.scrollWidth - window.innerWidth;
+
+// Ensure minimum scroll position is 0
+scrollRightPos = Math.max(scrollRightPos, 0);
+// Scroll to the calculated position
+window.scrollTo({
+  left: scrollRightPos,
+  behavior: 'smooth'  // Optional: 'smooth' for smooth scrolling
+});
+
+```
+
 

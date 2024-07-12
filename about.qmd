@@ -1,0 +1,24 @@
+---
+title: "About"
+author: "David Kocharyan"
+format: html
+css: styles.css
+execute: 
+  echo: false
+  warning: false
+---
+
+Welcome to my corner of the web! I'm passionate about weather data analysis and visualization. With a background in data science, I delve into the intricacies of climate patterns, exploring temperature variations, humidity trends, and atmospheric pressures. My journey began with a curiosity to understand how weather impacts our daily lives, from urban settings to remote landscapes.
+
+Through this site, I share insights gained from parsing diverse datasets, from bustling cities like Yerevan to tranquil spots like Gavar. My goal is to make weather information accessible and meaningful, whether you're tracking seasonal changes, studying environmental impacts, or planning outdoor activities.
+
+Join me in exploring the dynamic world of weather data. Together, we'll uncover patterns, create visualizations, and find correlations that deepen our understanding of the natural world.
+
+```{ojs}
+// Scroll right
+x = window.scrollTo({
+  left: document.body.scrollWidth,
+  behavior: 'smooth'
+});
+```
+

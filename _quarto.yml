@@ -2,16 +2,15 @@ project:
   type: website
 
 website:
+  search: false
   title: "CityWeatherCompare"
   description: "A public site comparing weather data for multiple cities"
   navbar:
     left:
       - href: index.qmd
         text: "Home"
-      - href: table.qmd
-        text: Table
-      - href: parse.qmd
-        text: Parsing
+      - href: about.qmd
+        text: "About"
 
 format:
   html:
